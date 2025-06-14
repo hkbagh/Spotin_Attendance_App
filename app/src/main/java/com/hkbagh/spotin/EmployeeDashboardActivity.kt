@@ -32,6 +32,7 @@ class EmployeeDashboardActivity : AppCompatActivity() {
     private lateinit var locationTextView: TextView
     private lateinit var markPresentButton: Button
     private lateinit var logoutButton: Button
+    private lateinit var calendarButton: Button
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastKnownLocation: Location? = null
@@ -48,6 +49,7 @@ class EmployeeDashboardActivity : AppCompatActivity() {
         locationTextView = findViewById(R.id.locationTextView)
         markPresentButton = findViewById(R.id.markPresentButton)
         logoutButton = findViewById(R.id.logoutButton)
+        calendarButton = findViewById(R.id.calendarButton)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -57,6 +59,10 @@ class EmployeeDashboardActivity : AppCompatActivity() {
 
         markPresentButton.setOnClickListener { recordAttendance("P") }
         logoutButton.setOnClickListener { logoutUser() }
+        calendarButton.setOnClickListener {
+            val intent = Intent(this@EmployeeDashboardActivity, CalendarActivity::class.java)
+            startActivity(intent)
+        }
 
         checkLocationPermissionsAndGetLocation()
     }

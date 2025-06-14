@@ -32,6 +32,13 @@
         android:layout_marginBottom="8dp"/>
 
     <Button
+        android:id="@+id/calendarButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Attendance Calendar"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
         android:id="@+id/logoutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
