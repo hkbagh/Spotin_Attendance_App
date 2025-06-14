@@ -31,7 +31,6 @@ class EmployeeDashboardActivity : AppCompatActivity() {
     private lateinit var welcomeTextView: TextView
     private lateinit var locationTextView: TextView
     private lateinit var markPresentButton: Button
-    private lateinit var markAbsentButton: Button
     private lateinit var logoutButton: Button
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -48,7 +47,6 @@ class EmployeeDashboardActivity : AppCompatActivity() {
         welcomeTextView = findViewById(R.id.welcomeTextView)
         locationTextView = findViewById(R.id.locationTextView)
         markPresentButton = findViewById(R.id.markPresentButton)
-        markAbsentButton = findViewById(R.id.markAbsentButton)
         logoutButton = findViewById(R.id.logoutButton)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -58,7 +56,6 @@ class EmployeeDashboardActivity : AppCompatActivity() {
         welcomeTextView.text = "Welcome, ${Appwrite.currentUser.name.ifEmpty { Appwrite.currentUser.email }}!"
 
         markPresentButton.setOnClickListener { recordAttendance("P") }
-        markAbsentButton.setOnClickListener { recordAttendance("A") }
         logoutButton.setOnClickListener { logoutUser() }
 
         checkLocationPermissionsAndGetLocation()
@@ -179,7 +176,7 @@ class EmployeeDashboardActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    
+                    Log.e("Attendance", "Failed to record attendance: ${e.message}", e)
                     Toast.makeText(this@EmployeeDashboardActivity, "Failed to record attendance: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
