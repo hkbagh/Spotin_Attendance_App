@@ -165,9 +165,7 @@ class EmployeeDashboardActivity : AppCompatActivity() {
                     data = data,
                     permissions = listOf(
                         "read(\"user:$employeeId\")",
-                        "update(\"user:$employeeId\")",
-                        "read(\"team:$APPWRITE_EMPLOYER_TEAM_ID\")",
-                        "update(\"team:$APPWRITE_EMPLOYER_TEAM_ID\")"
+                        "update(\"user:$employeeId\")"
                     )
                 )
 
