@@ -71,10 +71,9 @@ class EmployeeDashboardActivity : AppCompatActivity() {
         mapView.setMultiTouchControls(true)
 
         // Get current logged-in user and display welcome message
-        val userName = Appwrite.currentUser.name ?: ""
-        val userEmail = Appwrite.currentUser.email ?: ""
-        val displayMessage = if (userName.isNotEmpty()) userName else if (userEmail.isNotEmpty()) userEmail else "User"
-        welcomeTextView.text = "Welcome, $displayMessage!"
+        CoroutineScope(Dispatchers.Main).launch {
+            fetchEmployeeProfileAndDisplayWelcome()
+        }
 
         markPresentButton.setOnClickListener { recordAttendance("P") }
         logoutButton.setOnClickListener { logoutUser() }
@@ -200,7 +199,7 @@ class EmployeeDashboardActivity : AppCompatActivity() {
                 // Use Appwrite.currentUser which is set after login
                 val employeeId = Appwrite.currentUser.id
                 val data = mapOf(
-                    "employeeId" to employeeId,
+                    "employee_id" to employeeId,
                     "status" to status,
                     "timestamp" to timestamp,
                     "latitude" to latitude,
@@ -208,8 +207,8 @@ class EmployeeDashboardActivity : AppCompatActivity() {
                     "ip" to ipAddress
                 )
 
-                val databaseId = "684d43c6001eb3b4547b"
-                val collectionId = "684d43e5000fb8fc2d56"
+                val databaseId = Appwrite.APPWRITE_DATABASE_ID
+                val collectionId = Appwrite.APPWRITE_COLLECTION_ID
 
                 Appwrite.databases.createDocument(
                     databaseId = databaseId,
@@ -248,6 +247,44 @@ class EmployeeDashboardActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@EmployeeDashboardActivity, "Logout failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private suspend fun fetchEmployeeProfileAndDisplayWelcome() {
+        withContext(Dispatchers.IO) {
+            try {
+                val userId = Appwrite.currentUser.id
+                val response = Appwrite.databases.listDocuments(
+                    databaseId = Appwrite.APPWRITE_DATABASE_ID,
+                    collectionId = Appwrite.APPWRITE_COLLECTION_ID,
+                    queries = listOf(io.appwrite.Query.equal("user_id", userId))
+                )
+
+                withContext(Dispatchers.Main) {
+                    if (response.documents.isNotEmpty()) {
+                        val userProfile = response.documents[0].data
+                        val name = userProfile["name"] as? String
+                        val employeeId = userProfile["employee_id"] as? String
+                        val welcomeMessage = if (!name.isNullOrEmpty() && !employeeId.isNullOrEmpty()) {
+                            "Welcome, $name! (ID: $employeeId)"
+                        } else if (!name.isNullOrEmpty()) {
+                            "Welcome, $name!"
+                        } else if (!employeeId.isNullOrEmpty()) {
+                            "Welcome, ID: $employeeId!"
+                        } else {
+                            "Welcome, Employee!"
+                        }
+                        welcomeTextView.text = welcomeMessage
+                    } else {
+                        welcomeTextView.text = "Welcome, Employee! (Profile not found)"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("EmployeeDashboard", "Failed to fetch employee profile: ${e.message}", e)
+                    welcomeTextView.text = "Welcome, Employee! (Error loading profile)"
                 }
             }
         }

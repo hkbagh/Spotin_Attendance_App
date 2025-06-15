@@ -14,10 +14,12 @@ import android.util.TypedValue
 
 class EmployeeAttendanceSummaryAdapter(
     private val context: Context,
-    private var attendanceSummaryList: MutableList<EmployeeAttendanceSummary>
+    private var attendanceSummaryList: MutableList<EmployeeAttendanceSummary>,
+    private var distinctAttendanceDays: List<Int> = listOf()
 ) : RecyclerView.Adapter<EmployeeAttendanceSummaryAdapter.EmployeeSummaryViewHolder>() {
 
     private val dayColumnWidth: Int = context.resources.getDimensionPixelSize(R.dimen.day_column_width)
+    private val nameColumnWidth: Int = context.resources.getDimensionPixelSize(R.dimen.name_column_width)
 
     class EmployeeSummaryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val employeeNameTextView: TextView = itemView.findViewById(R.id.employeeNameTextView)
@@ -35,16 +37,17 @@ class EmployeeAttendanceSummaryAdapter(
     override fun onBindViewHolder(holder: EmployeeSummaryViewHolder, position: Int) {
         val summary = attendanceSummaryList[position]
 
+        // Set employee name and total counts
         holder.employeeNameTextView.text = summary.employeeName
+        holder.employeeNameTextView.layoutParams = LinearLayout.LayoutParams(nameColumnWidth, LinearLayout.LayoutParams.WRAP_CONTENT)
+
         holder.totalPresentTextView.text = summary.totalPresent.toString()
         holder.totalAbsentTextView.text = summary.totalAbsent.toString()
 
         holder.dailyStatusLayout.removeAllViews() // Clear previous day views
 
-        // Get the number of days in the current month from the first item's dailyStatus map
-        val daysInMonth = if (summary.dailyStatus.isNotEmpty()) summary.dailyStatus.size else Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH) // Fallback to current month's days
-
-        for (day in 1..daysInMonth) {
+        // Populate daily status for distinct attendance days
+        for (day in distinctAttendanceDays) {
             val status = summary.dailyStatus[day] ?: "A" // Default to Absent if no data for the day
             val dayStatusTextView = TextView(context).apply {
                 layoutParams = LinearLayout.LayoutParams(
@@ -62,9 +65,10 @@ class EmployeeAttendanceSummaryAdapter(
 
     override fun getItemCount(): Int = attendanceSummaryList.size
 
-    fun updateData(newAttendanceList: List<EmployeeAttendanceSummary>) {
+    fun updateData(newAttendanceList: List<EmployeeAttendanceSummary>, newDistinctDays: List<Int>) {
         attendanceSummaryList.clear()
         attendanceSummaryList.addAll(newAttendanceList)
+        distinctAttendanceDays = newDistinctDays
         notifyDataSetChanged()
     }
 }

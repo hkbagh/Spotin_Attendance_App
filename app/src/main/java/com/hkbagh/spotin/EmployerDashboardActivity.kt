@@ -57,11 +57,8 @@ class EmployerDashboardActivity : AppCompatActivity() {
         presentEmployeesRecyclerView.layoutManager = LinearLayoutManager(this)
         presentEmployeesRecyclerView.adapter = employeeAdapter
 
-        // Set welcome message using Appwrite.currentUser
-        val employerName = Appwrite.currentUser.name ?: ""
-        val employerEmail = Appwrite.currentUser.email ?: ""
-        val displayEmployerMessage = if (employerName.isNotEmpty()) employerName else if (employerEmail.isNotEmpty()) employerEmail else "Employer"
-        employerWelcomeTextView.text = "Welcome, $displayEmployerMessage!"
+        // Fetch and set welcome message using Appwrite.currentUser and UserProfile
+        fetchEmployerProfileAndDisplayWelcome()
 
         // Setup SearchView listener
         employeeSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -91,8 +88,8 @@ class EmployerDashboardActivity : AppCompatActivity() {
     private fun fetchPresentEmployeesToday() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val databaseId = "684d43c6001eb3b4547b" // Your attendance database ID
-                val collectionId = "684d43e5000fb8fc2d56" // Your attendance collection ID
+                val databaseId = Appwrite.APPWRITE_DATABASE_ID // Your attendance database ID
+                val collectionId = Appwrite.APPWRITE_COLLECTION_ID // Your attendance collection ID
 
                 // Get today's date in UTC for filtering
                 val today = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
@@ -136,7 +133,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
             allPresentEmployees
         } else {
             allPresentEmployees.filter { document ->
-                (document.data["employeeId"] as? String)?.contains(query, ignoreCase = true) == true
+                (document.data["employee_id"] as? String)?.contains(query, ignoreCase = true) == true // Corrected attribute name
             }.toMutableList()
         }
         employeeAdapter.updateData(filteredList)
@@ -157,6 +154,44 @@ class EmployerDashboardActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     Log.e("EmployerDashboard", "Logout failed: ${e.message}", e)
                     Toast.makeText(this@EmployerDashboardActivity, "Logout failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun fetchEmployerProfileAndDisplayWelcome() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val userId = Appwrite.currentUser.id
+                val response = databases.listDocuments(
+                    databaseId = Appwrite.APPWRITE_DATABASE_ID,
+                    collectionId = Appwrite.APPWRITE_COLLECTION_ID,
+                    queries = listOf(Query.equal("user_id", userId))
+                )
+
+                withContext(Dispatchers.Main) {
+                    if (response.documents.isNotEmpty()) {
+                        val userProfile = response.documents[0].data
+                        val name = userProfile["name"] as? String
+                        val employeeId = userProfile["employee_id"] as? String
+                        val welcomeMessage = if (!name.isNullOrEmpty() && !employeeId.isNullOrEmpty()) {
+                            "Welcome, $name! (ID: $employeeId)"
+                        } else if (!name.isNullOrEmpty()) {
+                            "Welcome, $name!"
+                        } else if (!employeeId.isNullOrEmpty()) {
+                            "Welcome, ID: $employeeId!"
+                        } else {
+                            "Welcome, Employer!"
+                        }
+                        employerWelcomeTextView.text = welcomeMessage
+                    } else {
+                        employerWelcomeTextView.text = "Welcome, Employer! (Profile not found)"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("EmployerDashboard", "Failed to fetch employer profile: ${e.message}", e)
+                    employerWelcomeTextView.text = "Welcome, Employer! (Error loading profile)"
                 }
             }
         }

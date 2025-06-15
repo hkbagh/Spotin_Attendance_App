@@ -17,9 +17,13 @@ const val APPWRITE_PROJECT_NAME = "Spotin"
  * Appwrite Employer Team ID (from your Appwrite Console).
  * IMPORTANT: Replace with your actual Employer Team ID for granular employer permissions.
  */
-const val APPWRITE_EMPLOYER_TEAM_ID = "YOUR_EMPLOYER_TEAM_ID"
+const val APPWRITE_EMPLOYER_TEAM_ID = "684d4c84000f5ee1deff"
 
 object Appwrite {
+    // Database and Collection IDs for user profiles
+    const val APPWRITE_DATABASE_ID = "684d43c6001eb3b4547b"
+    const val APPWRITE_COLLECTION_ID = "684ed2330036cd68e666"
+
     lateinit var client: Client
     lateinit var account: Account
     lateinit var databases: Databases

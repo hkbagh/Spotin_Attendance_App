@@ -79,7 +79,7 @@ class CalendarActivity : AppCompatActivity() {
                     databaseId = databaseId,
                     collectionId = collectionId,
                     queries = listOf(
-                        Query.equal("employeeId", employeeId)
+                        Query.equal("employee_id", employeeId)
                     )
                 )
 

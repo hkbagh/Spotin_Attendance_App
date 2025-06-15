@@ -37,6 +37,8 @@
         android:id="@+id/employeeSignupButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sign Up"/>
+        android:text="Sign Up"
+        android:background="@drawable/rounded_button_background"
+        android:textColor="#FFFFFF"/>
 
 </LinearLayout> 
