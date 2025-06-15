@@ -26,6 +26,14 @@ import java.util.Locale
 import java.net.NetworkInterface
 import java.util.Collections
 
+// OSMDroid imports
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import android.preference.PreferenceManager // Required for Configuration.getInstance().load()
+
 class EmployeeDashboardActivity : AppCompatActivity() {
 
     private lateinit var welcomeTextView: TextView
@@ -33,6 +41,7 @@ class EmployeeDashboardActivity : AppCompatActivity() {
     private lateinit var markPresentButton: Button
     private lateinit var logoutButton: Button
     private lateinit var calendarButton: Button
+    private lateinit var mapView: MapView // Declare MapView
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastKnownLocation: Location? = null
@@ -43,6 +52,8 @@ class EmployeeDashboardActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Load OSMDroid configuration before setContentView
+        Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
         setContentView(R.layout.activity_employee_dashboard)
 
         welcomeTextView = findViewById(R.id.welcomeTextView)
@@ -50,12 +61,20 @@ class EmployeeDashboardActivity : AppCompatActivity() {
         markPresentButton = findViewById(R.id.markPresentButton)
         logoutButton = findViewById(R.id.logoutButton)
         calendarButton = findViewById(R.id.calendarButton)
+        mapView = findViewById(R.id.mapView) // Initialize MapView
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // Get current logged-in user
-        // The user instance is now saved in Appwrite.currentUser after login
-        welcomeTextView.text = "Welcome, ${Appwrite.currentUser.name.ifEmpty { Appwrite.currentUser.email }}!"
+        // Configure MapView
+        mapView.setTileSource(TileSourceFactory.MAPNIK)
+        mapView.setBuiltInZoomControls(true)
+        mapView.setMultiTouchControls(true)
+
+        // Get current logged-in user and display welcome message
+        val userName = Appwrite.currentUser.name ?: ""
+        val userEmail = Appwrite.currentUser.email ?: ""
+        val displayMessage = if (userName.isNotEmpty()) userName else if (userEmail.isNotEmpty()) userEmail else "User"
+        welcomeTextView.text = "Welcome, $displayMessage!"
 
         markPresentButton.setOnClickListener { recordAttendance("P") }
         logoutButton.setOnClickListener { logoutUser() }
@@ -65,6 +84,21 @@ class EmployeeDashboardActivity : AppCompatActivity() {
         }
 
         checkLocationPermissionsAndGetLocation()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView.onResume() // MapView lifecycle management
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mapView.onPause() // MapView lifecycle management
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mapView.onDetach() // Detach map view to prevent memory leaks
     }
 
     private fun getLocalIpAddress(): String {
@@ -125,6 +159,19 @@ class EmployeeDashboardActivity : AppCompatActivity() {
                 if (location != null) {
                     lastKnownLocation = location
                     locationTextView.text = "Location: ${location.latitude}, ${location.longitude}"
+                    // Update map with new location
+                    val mapController = mapView.controller
+                    mapController.setZoom(18.0) // Set a suitable zoom level
+                    val geoPoint = GeoPoint(location.latitude, location.longitude)
+                    mapController.setCenter(geoPoint)
+
+                    // Add a marker to the map
+                    val startMarker = Marker(mapView)
+                    startMarker.position = geoPoint
+                    startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    mapView.overlays.clear() // Clear existing markers
+                    mapView.overlays.add(startMarker)
+                    mapView.invalidate() // Refresh map
                 } else {
                     locationTextView.text = "Location: Not available"
                 }

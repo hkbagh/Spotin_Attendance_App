@@ -29,11 +29,12 @@ class EmployerLoginActivity : AppCompatActivity() {
                 // If get() is successful, a session is active
                 Appwrite.currentUser = user
                 withContext(Dispatchers.Main) {
-                    Log.d(TAG, "Active session found for: ${user.email}. Redirecting.")
+                    Log.d(TAG, "Active session found for: ${user.email}. Redirecting to Employer Dashboard.")
                     Toast.makeText(this@EmployerLoginActivity, "Already logged in as Employer", Toast.LENGTH_SHORT).show()
-                    // TODO: Navigate to Employer Dashboard or appropriate activity
-                    // For now, just finish this activity if a session is active
-                    // finish()
+                    val intent = Intent(this@EmployerLoginActivity, EmployerDashboardActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear back stack
+                    startActivity(intent)
+                    finish()
                 }
             } catch (e: Exception) {
                 // No active session or error, proceed to login UI
@@ -67,10 +68,12 @@ class EmployerLoginActivity : AppCompatActivity() {
                     val user = Appwrite.account.get() // Fetch the user instance after successful session creation
                     Appwrite.currentUser = user // Save the user instance globally
                     withContext(Dispatchers.Main) {
-                        Log.d(TAG, "Login Successful for: $email")
+                        Log.d(TAG, "Login Successful for: $email. Navigating to Employer Dashboard.")
                         Toast.makeText(this@EmployerLoginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
-                        // Navigate to Employer Dashboard or next activity
-                        // For now, no dashboard for employer, so just a toast.
+                        val intent = Intent(this@EmployerLoginActivity, EmployerDashboardActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear back stack
+                        startActivity(intent)
+                        finish()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {

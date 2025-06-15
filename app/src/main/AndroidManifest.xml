@@ -39,6 +39,8 @@
             android:exported="false" />
         <activity android:name=".CalendarActivity"
             android:exported="false" />
+        <activity android:name=".EmployerDashboardActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

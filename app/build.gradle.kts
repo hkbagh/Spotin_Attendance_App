@@ -46,8 +46,9 @@ dependencies {
     implementation("io.appwrite:sdk-for-android:8.1.0") {
         exclude(group = "com.squareup.okhttp3", module = "okhttp-bom")
     }
-    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.applandeo:material-calendar-view:1.9.2")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
