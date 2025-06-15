@@ -28,6 +28,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
     private lateinit var presentEmployeesRecyclerView: RecyclerView
     private lateinit var employeeAdapter: EmployeeAttendanceAdapter
     private lateinit var employerLogoutButton: Button
+    private lateinit var viewAllAttendanceButton: Button
 
     private lateinit var appwriteClient: Client
     private lateinit var databases: Databases
@@ -42,6 +43,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         employeeSearchView = findViewById(R.id.employeeSearchView)
         presentEmployeesRecyclerView = findViewById(R.id.presentEmployeesRecyclerView)
         employerLogoutButton = findViewById(R.id.employerLogoutButton)
+        viewAllAttendanceButton = findViewById(R.id.viewAllAttendanceButton)
 
         appwriteClient = Client(applicationContext)
             .setEndpoint("https://cloud.appwrite.io/v1")
@@ -76,6 +78,11 @@ class EmployerDashboardActivity : AppCompatActivity() {
 
         employerLogoutButton.setOnClickListener {
             logoutEmployer()
+        }
+
+        viewAllAttendanceButton.setOnClickListener {
+            val intent = Intent(this@EmployerDashboardActivity, AllEmployeesAttendanceActivity::class.java)
+            startActivity(intent)
         }
 
         fetchPresentEmployeesToday()

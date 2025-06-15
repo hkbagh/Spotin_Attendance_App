@@ -37,13 +37,20 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/viewAllAttendanceButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View All Employee Attendance"
+        android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/employerLogoutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Logout"
-        android:layout_marginTop="16dp"/>
+        android:text="Logout" />
 
 </LinearLayout>

@@ -41,6 +41,8 @@
             android:exported="false" />
         <activity android:name=".EmployerDashboardActivity"
             android:exported="false" />
+        <activity android:name=".AllEmployeesAttendanceActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
