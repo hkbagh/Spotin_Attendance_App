@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.util.Log
+import io.appwrite.Query
 
 class EmployeeLoginActivity : AppCompatActivity() {
 
@@ -29,10 +30,8 @@ class EmployeeLoginActivity : AppCompatActivity() {
                 // If get() is successful, a session is active
                 Appwrite.currentUser = user
                 withContext(Dispatchers.Main) {
-                    Log.d(TAG, "Active session found for: ${user.email}. Redirecting to dashboard.")
-                    val intent = Intent(this@EmployeeLoginActivity, EmployeeDashboardActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                    Log.d(TAG, "Active session found for: ${user.email}. Checking profile...")
+                    checkUserProfileAndNavigate(user.id, UserType.EMPLOYEE)
                 }
             } catch (e: Exception) {
                 // No active session or error, proceed to login UI
@@ -66,11 +65,8 @@ class EmployeeLoginActivity : AppCompatActivity() {
                     val user = Appwrite.account.get() // Fetch the user instance after successful session creation
                     Appwrite.currentUser = user // Save the user instance globally
                     withContext(Dispatchers.Main) {
-                        Log.d(TAG, "Login Successful for: $email")
-                        Toast.makeText(this@EmployeeLoginActivity, "Login Successful", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@EmployeeLoginActivity, EmployeeDashboardActivity::class.java)
-                        startActivity(intent)
-                        finish() // Close login activity
+                        Log.d(TAG, "Login Successful for: $email. Checking profile...")
+                        checkUserProfileAndNavigate(user.id, UserType.EMPLOYEE)
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
@@ -84,6 +80,68 @@ class EmployeeLoginActivity : AppCompatActivity() {
         signupTextView.setOnClickListener {
             val intent = Intent(this, EmployeeSignupActivity::class.java)
             startActivity(intent)
+        }
+    }
+
+    private suspend fun checkUserProfileAndNavigate(userId: String, userType: UserType) {
+        withContext(Dispatchers.IO) {
+            Log.d(TAG, "checkUserProfileAndNavigate called for userId: $userId, userType: $userType")
+            Log.d(TAG, "Using DATABASE_ID: ${Appwrite.APPWRITE_DATABASE_ID}, COLLECTION_ID: ${Appwrite.APPWRITE_COLLECTION_ID}")
+            try {
+                val response = Appwrite.databases.listDocuments(
+                    databaseId = Appwrite.APPWRITE_DATABASE_ID,
+                    collectionId = Appwrite.APPWRITE_COLLECTION_ID,
+                    queries = listOf(Query.equal("user_id", userId))
+                )
+
+                Log.d(TAG, "listDocuments response: ${response.documents}")
+
+                if (response.documents.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Log.d(TAG, "User profile not found for userId: $userId. Redirecting to UserProfileActivity.")
+                        Toast.makeText(this@EmployeeLoginActivity, "Please complete your profile", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@EmployeeLoginActivity, UserProfileActivity::class.java)
+                        intent.putExtra("USER_TYPE", userType.name)
+                        startActivity(intent)
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        finish()
+                    }
+                } else {
+                    val userProfile = response.documents[0].data
+                    val employeeId = userProfile["employee_id"] as? String
+                    val name = userProfile["name"] as? String
+                    val phoneNo = userProfile["phone_no"] as? String
+
+                    Log.d(TAG, "Existing profile data: employee_id=$employeeId, name=$name, phone_no=$phoneNo")
+
+                    if (employeeId.isNullOrEmpty() || name.isNullOrEmpty() || phoneNo.isNullOrEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            Log.d(TAG, "User profile incomplete for userId: $userId. Redirecting to UserProfileActivity.")
+                            Toast.makeText(this@EmployeeLoginActivity, "Please complete your profile", Toast.LENGTH_LONG).show()
+                            val intent = Intent(this@EmployeeLoginActivity, UserProfileActivity::class.java)
+                            intent.putExtra("USER_TYPE", userType.name)
+                            startActivity(intent)
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                            finish()
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Log.d(TAG, "User profile complete for userId: $userId. Redirecting to Employee Dashboard.")
+                            Toast.makeText(this@EmployeeLoginActivity, "Profile loaded, redirecting to dashboard", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this@EmployeeLoginActivity, EmployeeDashboardActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e(TAG, "Error checking user profile for userId: $userId", e)
+                    Toast.makeText(this@EmployeeLoginActivity, "Error checking profile: ${e.message}", Toast.LENGTH_LONG).show()
+                    // Optionally, redirect to a generic error screen or allow user to retry
+                }
+            }
         }
     }
 } 

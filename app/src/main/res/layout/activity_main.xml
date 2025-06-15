@@ -15,12 +15,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Employer Login"
+        android:background="@drawable/rounded_button_background"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/employeeLoginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Employee Login"/>
+        android:text="Employee Login"
+        android:background="@drawable/rounded_button_background"
+        android:textColor="#FFFFFF"/>
 
 </LinearLayout> 

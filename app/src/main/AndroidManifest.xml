@@ -43,6 +43,8 @@
             android:exported="false" />
         <activity android:name=".AllEmployeesAttendanceActivity"
             android:exported="false" />
+        <activity android:name=".UserProfileActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
